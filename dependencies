@@ -1,0 +1,13 @@
+argparse
+configparser
+logging
+os
+platform
+subprocess
+pprint
+re
+requests
+pyyaml
+matplotlib
+pylatex
+psutil

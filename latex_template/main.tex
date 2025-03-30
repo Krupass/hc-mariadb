@@ -1,0 +1,52 @@
+\documentclass{article}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{datetime}
+\usepackage{amssymb}
+\usepackage{geometry}
+\usepackage{babel}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage[useregional]{datetime2}
+\usepackage{hyperref}
+\geometry{a4paper, margin=1in}
+
+% BEGIN title page
+\title{Database Configuration Security Compliance}
+\date{\today\ \currenttime}
+
+\begin{document}
+
+% Custom title page
+\begin{titlepage}
+\centering
+\vspace*{\stretch{1}}
+\includegraphics[width=39mm]{imgs/fekt.png}\\[1cm]
+{\Huge Database Configuration Security Compliance\par}
+\vspace{1cm}
+{\Large\today\ \currenttime\par}
+\vspace*{\stretch{2}}
+\end{titlepage}
+
+% END title page
+
+\input{intro}
+
+% BEGIN table of contents
+\newpage
+% Tabulka testovanych oblasti, pri generovani reportu budou yes/no nahrazeny graficky
+\include{tested_areas}
+\newpage
+% END table of contents
+% ocislovani do tabulky - dalsi sloupec, rozdeleni na mandatory a recommended; zvetsit
+% sirku pro compliant; 
+\include{disclaimer}
+\newpage
+
+
+\include{summary}
+\newpage
+
+
+\include{technical_details}
+
+\end{document}
