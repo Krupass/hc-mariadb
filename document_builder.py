@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use('Agg')  
 import matplotlib.pyplot as plt
 import uuid
-from utils.utils import get_mysql_version_cmd as get_mysql_version
+from utils.utils import get_mariadb_version_cmd as get_mariadb_version
 
 
 class DocumentBuilder:
@@ -130,7 +130,7 @@ class DocumentBuilder:
         latex_preamble = f"""
             \\newpage
             \\section*{{Tested System Information}}
-            \\noindent Path to MySQL Configuration: {latex_g.escape_latex(str(identity.path))} \\\\
+            \\noindent Path to MariaDB Configuration: {latex_g.escape_latex(str(identity.path))} \\\\
             Database Name: {latex_g.escape_latex(str(identity.dbname))} \\\\
             User: {latex_g.escape_latex(str(identity.user))} \\\\
             Host: {latex_g.escape_latex(str(identity.host))} \\\\
@@ -139,7 +139,7 @@ class DocumentBuilder:
             RAM: {latex_g.escape_latex(str(ram_info))} GB \\\\
             Storage Size: {latex_g.escape_latex(str(disk_info))} GB \\\\
             Operating System: {latex_g.escape_latex(str(os_info))} \\\\
-            MySQL Version: {latex_g.escape_latex(get_mysql_version(identity.peth))}
+            MariaDB Version: {latex_g.escape_latex(get_mariadb_version(identity.peth))}
                 """
         rewrite_file("latex_template/intro.tex", latex_preamble)
 
@@ -229,7 +229,7 @@ class DocumentBuilder:
                         "subsection":   "Insecure authentication plugins",
                         "description":  "This test examines the 'mysql.user' table for outdated authentication plugins. Specifically, "
                                         "it identifies the use of 'mysql_old_password', which is highly insecure and has been removed "
-                                        "in modern MySQL versions, and 'mysql_native_password', which relies on the SHA1 hashing algorithm"
+                                        "in modern MariaDB versions, and 'mysql_native_password', which relies on the SHA1 hashing algorithm"
                                         " and is considered less secure than newer authentication plugins such as 'caching_sha2_password'. "
                                         "While 'mysql_native_password' is still widely used, its reliance on SHA1 makes it vulnerable to "
                                         "cryptographic weaknesses, and its use is discouraged in favor of stronger authentication plugins.",
@@ -261,7 +261,7 @@ class DocumentBuilder:
                         "test_function": tests.test_trust_authentication
                     },
                     5: {
-                        "subsection": "Latest version of MySQL",
+                        "subsection": "Latest version of MariaDB",
                         "description": "This test verifies whether the database uses the latest software version. "
                                        "Outdated versions could contain security vulnerabilities that could be used "
                                        "by an attacker to compromise the database.",
@@ -270,8 +270,8 @@ class DocumentBuilder:
                         "required": ['db_connection'],
                         "to_be_tested": True,
                         "severity": self.sev["low"],
-                        "description_compliant": "\\textbf{Database uses latest version of MySQL }",
-                        "description_noncompliant": "\\textbf{Database uses outdated version of MySQL }",
+                        "description_compliant": "\\textbf{Database uses latest version of MariaDB }",
+                        "description_noncompliant": "\\textbf{Database uses outdated version of MariaDB }",
                         "config_details": "",
                         "test_function": tests.test_software_version                    
                     },
@@ -294,7 +294,7 @@ class DocumentBuilder:
                     },
                     7: {
                             "subsection": "Loadable functions",
-                            "description": "The purpose of this test is to verify that the MySQL server is properly "
+                            "description": "The purpose of this test is to verify that the MariaDB server is properly "
                                            "secured against potential abuse of loadable functions. The test will check "
                                            "the value of the \\texttt{local infile} variable, which controls the ability "
                                            "to load external files, and ensure that it is disabled. "
@@ -313,7 +313,7 @@ class DocumentBuilder:
                     },
                     8: {
                             "subsection": "File system access",
-                            "description": "Tests that the MySQL server is properly configured to restrict file system "
+                            "description": "Tests that the MariaDB server is properly configured to restrict file system "
                                            "access and that only authorized users have the FILE privilege.",
                             "compliant": False,
                             "show_config": True,
@@ -327,7 +327,7 @@ class DocumentBuilder:
                     },
                     9: {
                             "subsection": "Log configuration",
-                            "description": "Verifies that the the logging configuration of a MySQL server prevents "
+                            "description": "Verifies that the the logging configuration of a MariaDB server prevents "
                                            "sensitive data exposure and ensure compliance with security best practices.",
                             "compliant": False,
                             "show_config": True,
@@ -341,7 +341,7 @@ class DocumentBuilder:
                     },
                     10: {
                             "subsection": "Client side errors",
-                            "description": "This test checks the error verbosity setting on the MySQL server to "
+                            "description": "This test checks the error verbosity setting on the MariaDB server to "
                                            "determine if error messages are securely configured. The error verbosity"
                                            " variable controls the level of detail included in error logs. A higher "
                                            "verbosity level may expose sensitive information, making it easier "
@@ -363,7 +363,7 @@ class DocumentBuilder:
                     },
                     11: {
                             "subsection": "Configuration of SSL",
-                            "description": "This test verifies whether MySQL has SSL enabled. Additionally, it ensures "
+                            "description": "This test verifies whether MariaDB has SSL enabled. Additionally, it ensures "
                                            "that the required SSL variables are correctly configured.",
                             "compliant": False,
                             "show_config": True,
@@ -377,7 +377,7 @@ class DocumentBuilder:
                     },
                     12: {
                             "subsection": "SUPER privileges",
-                            "description": "This test checks which users have the SUPER privilege in the MySQL database. "
+                            "description": "This test checks which users have the SUPER privilege in the MariaDB database. "
                                            "The test queries the mysql.user table.",
                             "compliant": False,
                             "show_config": True,
@@ -390,7 +390,7 @@ class DocumentBuilder:
                                                      "is required, consider granting more specific privileges instead "
                                                      "of \\textbf{SUPER}.",
                             "description_noncompliant": "The following users have \\textbf{SUPER} privileges, which "
-                                                        "grant them extensive control over the MySQL server. This "
+                                                        "grant them extensive control over the MariaDB server. This "
                                                         "privilege allows modifying global settings, managing "
                                                         "replication, and terminating processes. It should be "
                                                         "restricted to administrative users only. Consider "

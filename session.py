@@ -47,7 +47,7 @@ class Session():
             my_conf_path = None
 
         try:
-            self.my_conf = parse.parse_mysql_conf(self, my_conf_path)
+            self.my_conf = parse.parse_mariadb_conf(self, my_conf_path)
             logger().info("my.ini configuration file successfully loaded.")
             self.resources.append('my.ini')
 

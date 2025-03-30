@@ -14,7 +14,7 @@ from pathlib import Path
 Args = namedtuple('Args', ['path', 'dbname', 'user', 'password', 'host', 'name', 'custom_latex_engine', 'port', 'language', 'no_report', 'setup_db'])
 
 args = Args(
-    path=Path('C:/Program Files/MySQL/data'),
+    path=Path('C:/Program Files/MariaDB/data'),
     dbname='experimental_paralel_db',
     user='root',
     password='test',

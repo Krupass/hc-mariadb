@@ -9,5 +9,6 @@ re
 requests
 pyyaml
 matplotlib
+mysql-connector-python
 pylatex
 psutil

@@ -33,7 +33,7 @@ def parse_database_privileges(self):
     #pprint.pprint(parsed_data)
     return parsed_data
     
-def parse_mysql_conf(self, path):
+def parse_mariadb_conf(self, path):
     config = {}
     try:
         with open(path, 'r', encoding="utf-8") as file:

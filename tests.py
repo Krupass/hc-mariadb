@@ -7,7 +7,7 @@ import requests
 from latex_generator import escape_latex
 from utils.global_logger import logger
 from utils.utils import exec_sql_query
-from utils.utils import get_mysql_version_cmd as get_mysql_version
+from utils.utils import get_mariadb_version_cmd as get_mariadb_version
 import utils.parsers as parser
 import latex_generator as latex_g
 
@@ -82,7 +82,7 @@ def test_transit_encryption(sess):
     if was_compliant_false is True:
         compliant = False
 
-    details = details + "\n" + latex_g.mysql_conf_dict_to_latex_table(parsed_data, "Variable", "Value", False)
+    details = details + "\n" + latex_g.mariadb_conf_dict_to_latex_table(parsed_data, "Variable", "Value", False)
 
     return {
         'compliant' : compliant,
@@ -119,7 +119,7 @@ def test_rest_encryption(sess):
 
 
 def test_insecure_auth_methods(sess):
-    mysql_auth_methods = parser.parse_auth_methods(sess)
+    mariadb_auth_methods = parser.parse_auth_methods(sess)
     insecure_methods = ["mysql_native_password", "mysql_old_password"]
     warning_methods = []
     secure_methods = ["caching_sha2_password", "sha256_password"]
@@ -127,7 +127,7 @@ def test_insecure_auth_methods(sess):
     compliant = None
     was_false = False
 
-    for user, values in mysql_auth_methods.items():
+    for user, values in mariadb_auth_methods.items():
         if not user.strip().startswith("mysql."):
             host, plugin = values
 
@@ -161,19 +161,19 @@ def test_insecure_auth_methods(sess):
 
 
 def test_trust_authentication(sess):
-    mysql_auth_methods = parser.parse_auth_methods(sess)
-    mysql_empty_passwords = parser.parse_empty_passwords(sess)
+    mariadb_auth_methods = parser.parse_auth_methods(sess)
+    mariadb_empty_passwords = parser.parse_empty_passwords(sess)
     insecure_users = {}
     compliant = None
 
-    for user, values in mysql_auth_methods.items():
+    for user, values in mariadb_auth_methods.items():
         host, plugin = values
 
         if plugin == "auth_socket":
             insecure_users[user] = [plugin, "insecure"]
             compliant = False
 
-    for user, values in mysql_empty_passwords.items():
+    for user, values in mariadb_empty_passwords.items():
         host, plugin, auth_string = values
 
         insecure_users[user] = [plugin, "No password or NULL"]
@@ -190,37 +190,37 @@ def test_trust_authentication(sess):
     }
 
 def test_software_version(sess):
-    installed_mysql_version = "Unknown"
-    latest_mysql_version = "Unknown"
+    installed_mariadb_version = "Unknown"
+    latest_mariadb_version = "Unknown"
 
     try:
         con = sess.conn
         query = "SELECT VERSION();"
         result = exec_sql_query(con, query)
-        installed_mysql_version = result[0]
+        installed_mariadb_version = result[0]
     except mysql.connector.Error as err:
-        logger().warning("Error getting MySQL version from SQL query: {}".format(err))
+        logger().warning("Error getting MariaDB version from SQL query: {}".format(err))
 
-        installed_mysql_version = get_mysql_version(sess.peth)
+        installed_mariadb_version = get_mariadb_version(sess.peth)
 
-    url = "https://dev.mysql.com/downloads/mysql/"
+    url = "https://mariadb.com/downloads/community/community-server/"
     response = requests.get(url)
     if response.status_code == 200:
-        match = re.search(r"MySQL Community Server (\d+\.\d+\.\d+)", response.text)
+        match = re.search(r"MariaDB Community Server (\d+\.\d+\.\d+)", response.text)
         if match:
-            latest_mysql_version = match.group(1)
+            latest_mariadb_version = match.group(1)
     else:
-        latest_mysql_version = "9.2.0"
+        latest_mariadb_version = "11.7"
 
-    logger().info("Installed MySQL version: {}".format(installed_mysql_version[0]))
-    logger().info("Latest MySQL version: {}".format(latest_mysql_version))
+    logger().info("Installed MariaDB version: {}".format(installed_mariadb_version[0]))
+    logger().info("Latest MariaDB version: {}".format(latest_mariadb_version))
 
-    is_updated = installed_mysql_version[0] == latest_mysql_version
+    is_updated = installed_mariadb_version[0] == latest_mariadb_version
     details = ""
     if is_updated:
-        details = "({}).".format(latest_mysql_version)
+        details = "({}).".format(latest_mariadb_version)
     else:
-        details = "{} instead of latest version {}".format(installed_mysql_version[0], latest_mysql_version)
+        details = "{} instead of latest version {}".format(installed_mariadb_version[0], latest_mariadb_version)
 
     return {
         'compliant' : is_updated,
@@ -432,7 +432,7 @@ def test_log_conf(sess):
 
     return {
         'compliant': compliant,
-        'config_details': details + "\n" + latex_g.mysql_conf_dict_to_latex_table(parsed_data, "Variable", "Value", True),
+        'config_details': details + "\n" + latex_g.mariadb_conf_dict_to_latex_table(parsed_data, "Variable", "Value", True),
     }
 
 def test_verbose_errors(sess):
@@ -501,16 +501,16 @@ def test_ssl(sess):
         if variable == 'ssl_ca':
             if value == '' or value == 'NULL':
                 details = details + (" SSL Certificate Authority (CA) is missing or not configured. "
-                                     "MySQL will not validate client certificates, which may reduce security.")
+                                     "MariaDB will not validate client certificates, which may reduce security.")
                 if compliant:
                     compliant = False
             else:
                 details = details + (" SSL Certificate Authority (CA) is correctly configured. "
-                                     "MySQL can verify client certificates.")
+                                     "MariaDB can verify client certificates.")
         elif variable == 'ssl_cert':
             if value == '' or value == 'NULL':
                 details = details + (" SSL certificate is missing or not configured. "
-                                     "MySQL cannot establish encrypted connections.")
+                                     "MariaDB cannot establish encrypted connections.")
                 if compliant:
                     compliant = False
             else:
@@ -518,7 +518,7 @@ def test_ssl(sess):
         elif variable == 'ssl_key':
             if value == '' or value == 'NULL':
                 details = details + (" SSL private key is missing or not configured. "
-                                     "MySQL cannot use SSL for encrypted connections.")
+                                     "MariaDB cannot use SSL for encrypted connections.")
                 if compliant:
                     compliant = False
             else:

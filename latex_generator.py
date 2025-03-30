@@ -4,7 +4,7 @@ import latex_generator as latex_g
 
 
 
-def mysql_conf_dict_to_latex_table(data, first, second, escape_second_column):
+def mariadb_conf_dict_to_latex_table(data, first, second, escape_second_column):
     latex_table = "\\begin{center}\n\\begin{tabular}{|l|c|}\n\\hline\n"
     latex_table += "\\textbf{" + escape_latex(first) + "} & \\textbf{" + escape_latex(second) + "} \\\\\n\\hline\n"
 

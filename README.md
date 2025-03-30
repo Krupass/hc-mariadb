@@ -82,5 +82,6 @@ python .\main.py --dbname <dbname> --user <username> --password <password> --hos
 - requests
 - pyyaml
 - matplotlib
+- mysql-connector-python
 - pylatex
 - psutil

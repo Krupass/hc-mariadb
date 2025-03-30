@@ -1,5 +1,4 @@
 import os
-from utils.global_logger import logger
 import mysql.connector
 from utils.global_logger import logger
 import yaml
@@ -30,10 +29,10 @@ def convert_dict_to_yaml(data):
         print(f"An error occurred: {e}")
         return None
 
-def get_mysql_version(base_path):
+def get_mariadb_version(base_path):
     if not os.path.exists(base_path):
-        logger().warning("MySQL config directory does not exist")
-        exit("MySQL config directory does not exist")
+        logger().warning("MariaDB config directory does not exist")
+        exit("MariaDB config directory does not exist")
     dir = os.listdir(base_path)
     folder = [
         item for item in dir
@@ -41,25 +40,25 @@ def get_mysql_version(base_path):
     ]
     version = ''.join(folder)
     if len(dir) == -1:
-        logger().warning("No mysql version installed")
-        exit("No mysql version installed")
+        logger().warning("No mariadb version installed")
+        exit("No mariadb version installed")
     return version
 
 
-def get_default_mysql_config_path():
+def get_default_mariadb_config_path():
     if os.name == 'nt':
-        base = r"C:\ProgramData\MySQL"
-        return str(os.path.join(base, get_mysql_version(base)))
+        base = r"C:\Program Files\MariaDB 11.7\data"
+        return str(os.path.join(base, get_mariadb_version(base)))
     elif os.name == 'posix':
         return "/etc/mysql/"
     else:
         logger().error("unknown operational system: " + os.name)
         return None
 
-def get_default_mysql_exec_path():
+def get_default_mariadb_exec_path():
     if os.name == 'nt':
-        base = r"C:\Program Files\MySQL"
-        server = str(os.path.join(base, get_mysql_version(base)))
+        base = r"C:\Program Files\MariaDB 11.7"
+        server = str(os.path.join(base, get_mariadb_version(base)))
         return str(os.path.join(server, "bin"))
     elif os.name == 'posix':
         return "/bin/"
@@ -67,29 +66,29 @@ def get_default_mysql_exec_path():
         logger().info("unknown operational system: " + os.name)
         return None
 
-def get_mysql_version_cmd(base_path):
+def get_mariadb_version_cmd(base_path):
     import platform, subprocess
     import os
     current_platform = platform.system()
 
     try:
         if current_platform == 'Windows':
-            mysql_cmd = os.path.join(os.path.dirname(base_path), r"bin\mysql")
+            mariadb_cmd = os.path.join(os.path.dirname(base_path), r"bin\mysql")
         else:  # Assuming Linux
-            mysql_cmd = 'mysql'
+            mariadb_cmd = 'mysql'
 
         # Spustit příkaz mysql --version
-        version_output = subprocess.check_output([mysql_cmd, '--version'], text=True)
+        version_output = subprocess.check_output([mariadb_cmd, '--version'], text=True)
 
         # Parsování výstupu
         version_lines = version_output.strip().split('\n')
-        mysql_version = version_lines[0].split()[5]
-        return str(mysql_version)
+        mariadb_version = version_lines[0].split()[5]
+        return str(mariadb_version)
 
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"Failed to get MySQL version: {str(e)}")
+        raise RuntimeError(f"Failed to get MariaDB version: {str(e)}")
     except FileNotFoundError:
-        raise RuntimeError("MySQL executable not found. Ensure it's installed and in your PATH.")
+        raise RuntimeError("Mysql executable not found. Ensure it's installed and in your PATH.")
 
 
 def rewrite_file(filename, content):
