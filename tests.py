@@ -99,15 +99,18 @@ def test_rest_encryption(sess):
     result = exec_sql_query(con, query)
     parsed_data = {}
 
-    for row in result:
-        name, space_type, encryption = row
-        if encryption.strip().lower() == "y":
-            compliant = True
-        else:
-            compliant = False
-            was_compliant_false = True
+    if result:
+        for row in result:
+            name, space_type, encryption = row
+            if encryption.strip().lower() == "y":
+                compliant = True
+            else:
+                compliant = False
+                was_compliant_false = True
 
-        parsed_data[name] = [space_type, encryption]
+            parsed_data[name] = [space_type, encryption]
+    else:
+        logger().error("No result in encryption at rest.")
 
     if was_compliant_false is True:
         compliant = False
@@ -291,18 +294,21 @@ def test_file_access(sess):
 
     directory = exec_sql_query(con, query)
 
-    if directory[0][0] == "":
-        logger().warning("Unrestricted write/read access to files.")
-        compliant = False
-        details = "\\textbf{SQL server has unrestricted write/read access to files.}"
-    elif directory[0][0] == "NULL" or None:
-        logger().info("No access to files.")
-        compliant = True
-        details = "SQL server has no access to files."
+    if directory[0][0] == "None":
+        if directory[0][0] == "":
+            logger().warning("Unrestricted write/read access to files.")
+            compliant = False
+            details = "\\textbf{SQL server has unrestricted write/read access to files.}"
+        elif directory[0][0] == "NULL" or None:
+            logger().info("No access to files.")
+            compliant = True
+            details = "SQL server has no access to files."
+        else:
+            logger().info("Access to files in directory: {}".format(directory[0][0]))
+            compliant = True
+            details = "SQL server has access to files in directory {}.".format(latex_g.escape_latex(directory[0][0]))
     else:
-        logger().info("Access to files in directory: {}".format(directory[0][0]))
-        compliant = True
-        details = "SQL server has access to files in directory {}.".format(latex_g.escape_latex(directory[0][0]))
+        logger().error("No result in file access.")
 
 
     query = """SELECT User, Host, File_priv
@@ -358,10 +364,11 @@ def test_log_conf(sess):
     if log_raw is None:
         query = """SHOW VARIABLES LIKE 'log_raw';"""
         result = exec_sql_query(con, query)
-        variable, log_raw = result[0]
+        if result:
+            variable, log_raw = result[0]
 
-    parsed_data["log_raw"] = log_raw
-    log_raw = log_raw.strip().lower()
+            parsed_data["log_raw"] = log_raw
+            log_raw = log_raw.strip().lower()
 
     if log_raw == "on":
         compliant = False
@@ -439,11 +446,13 @@ def test_verbose_errors(sess):
     compliant = None
     details = ""
     con = sess.conn
+    variable = None
     query = """SHOW VARIABLES LIKE 'log_error_verbosity';"""
 
     result =  exec_sql_query(con, query)
 
-    variable, value = result[0]
+    if result:
+        variable, value = result[0]
 
     if variable == "log_error_verbosity":
         if value == "1":
