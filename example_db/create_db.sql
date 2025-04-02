@@ -3,8 +3,8 @@ START TRANSACTION;
 
 -- Vytvoření uživatelů (nebo rolí)
 CREATE USER 'public_user'@'%' IDENTIFIED USING PASSWORD('password');
-CREATE USER 'test_user'@'%' IDENTIFIED WITH 'mysql_native_password' USING PASSWORD('');
-CREATE USER 'private_user'@'%' IDENTIFIED WITH 'mysql_old_password' USING PASSWORD('password') REQUIRE SSL;
+CREATE USER 'test_user'@'%' IDENTIFIED WITH mysql_native_password USING PASSWORD('');
+CREATE USER 'private_user'@'%' IDENTIFIED WITH mysql_old_password USING PASSWORD('password') REQUIRE SSL;
 CREATE USER 'admin_user'@'localhost' IDENTIFIED USING PASSWORD('password') REQUIRE SSL;
 
 -- Omezení připojení
