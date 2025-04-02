@@ -1,11 +1,10 @@
--- Zahájení transakce
-START TRANSACTION;
+INSTALL SONAME 'auth_ed25519';
 
 -- Vytvoření uživatelů (nebo rolí)
-CREATE USER 'public_user'@'%' IDENTIFIED USING PASSWORD('password');
+CREATE USER 'public_user'@'%' IDENTIFIED WITH ed25519 USING PASSWORD('password');
 CREATE USER 'test_user'@'%' IDENTIFIED WITH mysql_native_password USING PASSWORD('');
 CREATE USER 'private_user'@'%' IDENTIFIED WITH mysql_old_password USING PASSWORD('password') REQUIRE SSL;
-CREATE USER 'admin_user'@'localhost' IDENTIFIED USING PASSWORD('password') REQUIRE SSL;
+CREATE USER 'admin_user'@'localhost' IDENTIFIED WITH mysql_native_password USING PASSWORD('password') REQUIRE SSL;
 
 -- Omezení připojení
 ALTER USER 'public_user'@'%' WITH MAX_USER_CONNECTIONS 10;
@@ -48,6 +47,3 @@ GRANT FILE ON *.* TO 'admin_user'@'localhost';
 
 -- Nastavení podrobosti hlášení chyb
 SET GLOBAL log_error_verbosity = 3;
-
--- Dokončení transakce
-COMMIT;
