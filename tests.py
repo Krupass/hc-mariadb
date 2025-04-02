@@ -207,7 +207,10 @@ def test_software_version(sess):
         installed_mariadb_version = get_mariadb_version(sess.peth)
 
     url = "https://mariadb.com/downloads/community/community-server/"
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
+    except Exception as e:
+        logger().warning("Error getting MariaDB version from URL: {}".format(e))
     if response.status_code == 200:
         match = re.search(r"MariaDB Community Server (\d+\.\d+\.\d+)", response.text)
         if match:
