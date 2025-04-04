@@ -110,10 +110,10 @@ def test_rest_encryption(sess):
                 was_compliant_false = True
 
             parsed_data[name] = [encryption_scheme, current_key_id]
+        details = latex_g.detail_to_latex(parsed_data, "Name", "Encryption scheme", "Key ID", True) + "\n"
     else:
         logger().error("No individual tables are encrypted at rest.")
 
-    details = latex_g.detail_to_latex(parsed_data, "Name", "Encryption scheme", "Key ID", True) + "\n"
     parsed_data = {}
 
     innodb_encrypt_tables = sess.my_conf.get("mysqld_innodb_encrypt_tables", None)
