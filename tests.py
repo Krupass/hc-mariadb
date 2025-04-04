@@ -91,33 +91,97 @@ def test_transit_encryption(sess):
 
 def test_rest_encryption(sess):
     con = sess.conn
-    query = """SELECT NAME, SPACE_TYPE, ENCRYPTION 
-                FROM INFORMATION_SCHEMA.INNODB_TABLESPACES"""
+    query = """SELECT NAME, ENCRYPTION_SCHEME, CURRENT_KEY_ID 
+                FROM INFORMATION_SCHEMA.INNODB_TABLESPACES_ENCRYPTION"""
     compliant = None
     was_compliant_false = False
+    details = ""
 
     result = exec_sql_query(con, query)
     parsed_data = {}
 
     if result:
         for row in result:
-            name, space_type, encryption = row
-            if encryption.strip().lower() == "y":
+            name, encryption_scheme, current_key_id = row
+            if encryption_scheme.strip() == 1 or encryption_scheme.strip() == "1":
                 compliant = True
             else:
                 compliant = False
                 was_compliant_false = True
 
-            parsed_data[name] = [space_type, encryption]
+            parsed_data[name] = [encryption_scheme, current_key_id]
     else:
-        logger().error("No result in encryption at rest.")
+        logger().error("No individual tables are encrypted at rest.")
+
+    details = latex_g.detail_to_latex(parsed_data, "Name", "Encryption scheme", "Key ID", True) + "\n"
+    parsed_data = {}
+
+    innodb_encrypt_tables = sess.my_conf.get("mysqld_innodb_encrypt_tables", None)
+    if innodb_encrypt_tables is None:
+        query = """SHOW VARIABLES LIKE 'innodb_encrypt_tables';"""
+        result = exec_sql_query(con, query)
+        variable, innodb_encrypt_tables = result[0]
+
+    parsed_data["innodb_encrypt_tables"] = innodb_encrypt_tables
+    innodb_encrypt_tables = innodb_encrypt_tables.strip().lower()
+
+    if innodb_encrypt_tables == "on":
+        compliant = True
+        details = details + "Table encryption is enabled for all new and existing tables that have the ENCRYPTED table option set to DEFAULT, but allows unencrypted tables to be created. "
+    elif innodb_encrypt_tables == "off":
+        compliant = False
+        was_compliant_false = True
+        details = details + "\\textbf{Table encryption is disabled for all new and existing tables that have the ENCRYPTED table option set to DEFAULT. } "
+    elif innodb_encrypt_tables == "force":
+        compliant = True
+        details = details + "Table encryption is enabled for all new and existing tables that have the ENCRYPTED table option set to DEFAULT and doesn't allow unencrypted tables to be created. "
+    else:
+        logger().warning("Innodb encrypt tables untracked value: {}.".format(innodb_encrypt_tables))
+
+    innodb_encrypt_log = sess.my_conf.get("mysqld_innodb_encrypt_log", None)
+    if innodb_encrypt_log is None:
+        query = """SHOW VARIABLES LIKE 'innodb_encrypt_log';"""
+        result = exec_sql_query(con, query)
+        variable, innodb_encrypt_log = result[0]
+
+    parsed_data["innodb_encrypt_log"] = innodb_encrypt_log
+    innodb_encrypt_log = innodb_encrypt_log.strip().lower()
+
+    if innodb_encrypt_log == "on":
+        compliant = True
+        details = details + "Encryption of the InnoDB redo log is enabled. "
+    elif innodb_encrypt_log == "off":
+        compliant = False
+        was_compliant_false = True
+        details = details + "\\textbf{Encryption of the InnoDB redo log is disabled. } "
+    else:
+        logger().warning("Innodb encrypt log untracked value: {}.".format(innodb_encrypt_log))
+
+    innodb_encrypt_temporary_tables = sess.my_conf.get("mysqld_innodb_encrypt_temporary_tables", None)
+    if innodb_encrypt_temporary_tables is None:
+        query = """SHOW VARIABLES LIKE 'innodb_encrypt_temporary_tables';"""
+        result = exec_sql_query(con, query)
+        variable, innodb_encrypt_temporary_tables = result[0]
+
+    parsed_data["innodb_encrypt_temporary_tables"] = innodb_encrypt_temporary_tables
+    innodb_encrypt_temporary_tables = innodb_encrypt_temporary_tables.strip().lower()
+
+    if innodb_encrypt_temporary_tables == "on":
+        compliant = True
+        details = details + "Automatic encryption of the InnoDB temporary tablespace is enabled. "
+    elif innodb_encrypt_temporary_tables == "off":
+        compliant = False
+        was_compliant_false = True
+        details = details + "\\textbf{Automatic encryption of the InnoDB temporary tablespace is disabled. } "
+    else:
+        logger().warning("Innodb encrypt temporary tables untracked value: {}.".format(innodb_encrypt_temporary_tables))
 
     if was_compliant_false is True:
         compliant = False
 
     return {
         'compliant' : compliant,
-        'config_details' : latex_g.detail_to_latex(parsed_data, "Name", "Space Type", "Encryption", True)
+        'config_details' : details + latex_g.mariadb_conf_dict_to_latex_table(parsed_data, "Variable", "Value", False)
     }
 
 
