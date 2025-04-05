@@ -187,9 +187,9 @@ def test_rest_encryption(sess):
 
 def test_insecure_auth_methods(sess):
     mariadb_auth_methods = parser.parse_auth_methods(sess)
-    insecure_methods = ["mysql_native_password", "mysql_old_password"]
+    insecure_methods = ["mysql_native_password", "mysql_old_password", "named_pipe", "unix_socket"]
     warning_methods = []
-    secure_methods = ["caching_sha2_password", "sha256_password"]
+    secure_methods = ["ed25519", "gssapi", "pam", "parsec"]
     user_plugins_sorted = {}
     compliant = None
     was_false = False
