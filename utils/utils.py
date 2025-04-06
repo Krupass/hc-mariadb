@@ -36,7 +36,7 @@ def get_mariadb_version(base_path):
     dir = os.listdir(base_path)
     folder = [
         item for item in dir
-        if "Server" in item and os.path.isdir(os.path.join(base_path, item))
+        if "MariaDB" in item and os.path.isdir(os.path.join(base_path, item))
     ]
     version = ''.join(folder)
     if len(dir) == -1:
@@ -47,8 +47,9 @@ def get_mariadb_version(base_path):
 
 def get_default_mariadb_config_path():
     if os.name == 'nt':
-        base = r"C:\Program Files\MariaDB 11.7\data"
-        return str(os.path.join(base, get_mariadb_version(base)))
+        base = r"C:\Program Files"
+        mariadb =  str(os.path.join(base, get_mariadb_version(base)))
+        return str(os.path.join(mariadb, "data"))
     elif os.name == 'posix':
         return "/etc/mysql/"
     else:
@@ -57,9 +58,9 @@ def get_default_mariadb_config_path():
 
 def get_default_mariadb_exec_path():
     if os.name == 'nt':
-        base = r"C:\Program Files\MariaDB 11.7"
-        server = str(os.path.join(base, get_mariadb_version(base)))
-        return str(os.path.join(server, "bin"))
+        base = r"C:\Program Files"
+        mariadb = str(os.path.join(base, get_mariadb_version(base)))
+        return str(os.path.join(mariadb, "bin"))
     elif os.name == 'posix':
         return "/bin/"
     else:
@@ -73,16 +74,16 @@ def get_mariadb_version_cmd(base_path):
 
     try:
         if current_platform == 'Windows':
-            mariadb_cmd = os.path.join(os.path.dirname(base_path), r"bin\mysql")
+            mariadb_cmd = os.path.join(os.path.dirname(base_path), r"mariadb")
         else:  # Assuming Linux
-            mariadb_cmd = 'mysql'
+            mariadb_cmd = 'mariadb'
 
-        # Spustit příkaz mysql --version
+        # Spustit příkaz mariadb --version
         version_output = subprocess.check_output([mariadb_cmd, '--version'], text=True)
 
         # Parsování výstupu
         version_lines = version_output.strip().split('\n')
-        mariadb_version = version_lines[0].split()[5]
+        mariadb_version = version_lines[0].split(" ")[4].split("-")[0]
         return str(mariadb_version)
 
     except subprocess.CalledProcessError as e:

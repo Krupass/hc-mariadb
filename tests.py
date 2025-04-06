@@ -282,11 +282,11 @@ def test_software_version(sess):
         logger().warning("Error getting MariaDB version from URL: {}".format(e))
     if response:
         if response.status_code == 200:
-            match = re.search(r'<select[^>]*id="version-select-community-server"[^>]*>(.*?)</select>', response.text, re.DOTALL)
+            match = re.search(r'<select[^>]*id="version-select-community_server"[^>]*>(.*?)</select>', response.text, re.DOTALL)
             if match:
                 content = match.group(1)
                 options = re.findall(r'<option[^>]*value="([^"]*)".*?>(.*?)</option>', content)
-                latest_mariadb_version = options[0][0]
+                latest_mariadb_version = options[0][1].split("-")[0]
         else:
             latest_mariadb_version = "11.7.2"
 
