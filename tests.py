@@ -236,7 +236,11 @@ def test_trust_authentication(sess):
     for user, values in mariadb_auth_methods.items():
         host, plugin = values
 
-        if plugin == "auth_socket":
+        if plugin == "unix_socket":
+            insecure_users[user] = [plugin, "insecure"]
+            compliant = False
+
+        elif plugin == "named_pipe":
             insecure_users[user] = [plugin, "insecure"]
             compliant = False
 
@@ -264,7 +268,7 @@ def test_software_version(sess):
         con = sess.conn
         query = "SELECT VERSION();"
         result = exec_sql_query(con, query)
-        installed_mariadb_version = result[0]
+        installed_mariadb_version = result[0][0].split("-")
     except mysql.connector.Error as err:
         logger().warning("Error getting MariaDB version from SQL query: {}".format(err))
 
@@ -278,11 +282,13 @@ def test_software_version(sess):
         logger().warning("Error getting MariaDB version from URL: {}".format(e))
     if response:
         if response.status_code == 200:
-            match = re.search(r"MariaDB Community Server (\d+\.\d+\.\d+)", response.text)
+            match = re.search(r'<select[^>]*id="version-select-community-server"[^>]*>(.*?)</select>', response.text, re.DOTALL)
             if match:
-                latest_mariadb_version = match.group(1)
+                content = match.group(1)
+                options = re.findall(r'<option[^>]*value="([^"]*)".*?>(.*?)</option>', content)
+                latest_mariadb_version = options[0][0]
         else:
-            latest_mariadb_version = "11.7"
+            latest_mariadb_version = "11.7.2"
 
     logger().info("Installed MariaDB version: {}".format(installed_mariadb_version[0]))
     logger().info("Latest MariaDB version: {}".format(latest_mariadb_version))
