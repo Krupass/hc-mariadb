@@ -74,7 +74,7 @@ def get_mariadb_version_cmd(base_path):
 
     try:
         if current_platform == 'Windows':
-            mariadb_cmd = os.path.join(os.path.dirname(base_path), r"mariadb")
+            mariadb_cmd = os.path.join(os.path.dirname(base_path), r"bin\mariadb")
         else:  # Assuming Linux
             mariadb_cmd = 'mariadb'
 
