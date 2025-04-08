@@ -346,7 +346,12 @@ def test_user_defined_functions(sess):
     if result:
         for row in result:
             grantee, table_schema, privilege = row
-            parsed_data[grantee] = [table_schema, privilege]
+            if grantee in parsed_data:
+                privileges = parsed_data[grantee][1].split(", ")
+                privileges.append(privilege)
+                parsed_data[grantee][1] = ", ".join(privileges)
+            else:
+                parsed_data[grantee] = [table_schema, privilege]
 
         details = details + latex_g.detail_to_latex(parsed_data, "Grantee", "Table schema", "Privilege", True)
         compliant = False
