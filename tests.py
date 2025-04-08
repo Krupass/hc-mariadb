@@ -333,7 +333,7 @@ def test_user_defined_functions(sess):
         was_compliant_false = True
     else:
         compliant = True
-        details = details + "No functions in mysql.func table."
+        details = details + "No functions in mysql.func table. "
 
     parsed_data = {}
 
@@ -353,7 +353,7 @@ def test_user_defined_functions(sess):
             else:
                 parsed_data[grantee] = [table_schema, privilege]
 
-        details = details + "\\textbf{Users with direct change privileges over mysql schema:} " + latex_g.detail_to_latex(parsed_data, "Grantee", "Table schema", "Privilege", True)
+        details = details + "\\textbf{Users with direct change privileges over mysql schema:} " + latex_g.detail_to_latex(parsed_data, "Grantee", "Table schema", "Privileges", True)
         compliant = False
         was_compliant_false = True
     else:
