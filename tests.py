@@ -311,50 +311,52 @@ def test_user_permissions(sess):
         'config_details': latex_g.privilege_dict_to_latex_table(sess.privileges)
     }
 
-def test_loadable_functions(sess):
+def test_user_defined_functions(sess):
     compliant = None
+    was_compliant_false = False
     details = ""
     con = sess.conn
 
     parsed_data = {}
 
-    local_infile = sess.my_conf.get("mysqld_local_infile", None)
-    if local_infile is None:
-        query = """SHOW VARIABLES LIKE 'local_infile';"""
-        result = exec_sql_query(con, query)
-        variable, local_infile = result[0]
-
-    local_infile = local_infile.strip().lower()
-
-    if local_infile == "on":
-        compliant = False
-        details = details + "\\textbf{Clients can load functions by \\texttt{LOAD DATA} statements.} "
-    elif local_infile == "off":
-        compliant = True
-        details = details + "Clients can't use \\texttt{LOAD DATA} statements. "
-    else:
-        logger().warning("Local infile untracked value: {}.".format(local_infile))
-
     query = """SELECT * FROM mysql.func;"""
     result = exec_sql_query(con, query)
 
     if result:
-        latex_table = ["\\begin{center}"]
-        latex_table.append("\\begin{tabular}{|l|c|c|c|}")
-        latex_table.append("\\hline")
-        latex_table.append("\\textbf{Name} & \\textbf{Ret} & \\textbf{Dll} & \\textbf{Type} \\\\ \\hline")
 
         for row in result:
             name, ret, dll, type = row
-            latex_row = f"{escape_latex(name)} & {escape_latex(ret)} & {escape_latex(dll)} & {escape_latex(type)} \\\\ \\hline"
-            latex_table.append(latex_row)
+            parsed_data[name] = [dll, type]
 
-        latex_table.append("\\end{tabular}")
-        latex_table.append("\\end{center}")
-        details = details + "\\textbf{Check if all function in mysql.func table are necessary.}" + "\n".join(latex_table)
+        details = details + latex_g.detail_to_latex(parsed_data, "Name", "Library name", "Type", True)
         compliant = False
+        was_compliant_false = True
     else:
+        compliant = True
         details = details + "No functions in mysql.func table."
+
+    parsed_data = {}
+
+    query = """SELECT Grantee, Table_schema, Privilege_type 
+               FROM information_schema.schema_privileges
+               WHERE Table_schema = 'mysql' 
+               AND Privilege_type IN ('INSERT', 'UPDATE', 'DELETE');"""
+    result = exec_sql_query(con, query)
+
+    if result:
+        for row in result:
+            grantee, table_schema, privilege = row
+            parsed_data[grantee] = [table_schema, privilege]
+
+        details = details + latex_g.detail_to_latex(parsed_data, "Grantee", "Table schema", "Privilege", True)
+        compliant = False
+        was_compliant_false = True
+    else:
+        compliant = True
+        details = details + "No users with direct change privileges over mysql schema."
+
+    if was_compliant_false:
+        compliant = False
 
     return {
         'compliant': compliant,

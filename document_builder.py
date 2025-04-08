@@ -293,14 +293,11 @@ class DocumentBuilder:
                             "test_function": tests.test_user_permissions
                     },
                     7: {
-                            "subsection": "Loadable functions",
+                            "subsection": "User defined functions",
                             "description": "The purpose of this test is to verify that the MariaDB server is properly "
-                                           "secured against potential abuse of loadable functions. The test will check "
-                                           "the value of the \\texttt{local infile} variable, which controls the ability "
-                                           "to load external files, and ensure that it is disabled. "
-                                           "Additionally, the test will inspect the contents of the mysql.func table, "
-                                           "which stores information about any custom functions that have been loaded "
-                                           "into the server.",
+                                           "secured against potential abuse of user defined functions. The test will inspect the contents of the mysql.func table, "
+                                           "which stores information about any custom functions that have been loaded into the server."
+                                           " Additionally, the test will check schema privileges table for users with privileges over mysql schema.",
                             "compliant": False,
                             "show_config": True,
                             "required": ['db_connection'],
@@ -309,7 +306,7 @@ class DocumentBuilder:
                             "description_compliant": "\\textbf{}",
                             "description_noncompliant": "\\textbf{}",
                             "config_details": "",
-                            "test_function": tests.test_loadable_functions
+                            "test_function": tests.test_user_defined_functions
                     },
                     8: {
                             "subsection": "File system access",
