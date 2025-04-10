@@ -372,23 +372,25 @@ def test_file_access(sess):
     compliant = None
     details = ""
     con = sess.conn
-    query = """SELECT @@global.secure_file_priv;"""
+    query = """SHOW VARIABLES LIKE 'secure_file_priv';"""
 
-    directory = exec_sql_query(con, query)
+    result = exec_sql_query(con, query)
 
-    if directory[0][0] == "None":
-        if directory[0][0] == "":
+    print(result)
+
+    if result[0] == "None":
+        if result[0] == "":
             logger().warning("Unrestricted write/read access to files.")
             compliant = False
             details = "\\textbf{SQL server has unrestricted write/read access to files.}"
-        elif directory[0][0] == "NULL" or None:
+        elif result[0] == "NULL" or None:
             logger().info("No access to files.")
             compliant = True
             details = "SQL server has no access to files."
         else:
-            logger().info("Access to files in directory: {}".format(directory[0][0]))
+            logger().info("Access to files in directory: {}".format(result[0]))
             compliant = True
-            details = "SQL server has access to files in directory {}.".format(latex_g.escape_latex(directory[0][0]))
+            details = "SQL server has access to files in directory {}.".format(latex_g.escape_latex(result[0]))
     else:
         logger().error("No result in file access.")
 
