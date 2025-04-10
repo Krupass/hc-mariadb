@@ -370,30 +370,49 @@ def test_user_defined_functions(sess):
 
 def test_file_access(sess):
     compliant = None
+    was_compliant_false = None
     details = ""
     con = sess.conn
-    query = """SHOW VARIABLES LIKE 'secure_file_priv';"""
+    parsed_data = {}
 
-    result = exec_sql_query(con, query)
+    secure_file_priv = sess.my_conf.get("mysqld_secure_file_priv", None)
+    if secure_file_priv is None:
+        query = """SHOW VARIABLES LIKE 'secure_file_priv';"""
+        result = exec_sql_query(con, query)
+        variable, secure_file_priv = result[0]
 
-    print(result)
+    parsed_data["secure_file_priv"] = secure_file_priv
 
-    if result[0] == "None":
-        if result[0] == "":
-            logger().warning("Unrestricted write/read access to files.")
-            compliant = False
-            details = "\\textbf{SQL server has unrestricted write/read access to files.}"
-        elif result[0] == "NULL" or None:
-            logger().info("No access to files.")
-            compliant = True
-            details = "SQL server has no access to files."
-        else:
-            logger().info("Access to files in directory: {}".format(result[0]))
-            compliant = True
-            details = "SQL server has access to files in directory {}.".format(latex_g.escape_latex(result[0]))
+    if secure_file_priv.strip() == "" or secure_file_priv is None:
+        compliant = False
+        was_compliant_false = True
+        logger().warning("Unrestricted write/read access to files.")
+        details = "\\textbf{MariaDB server has unrestricted write/read access to files. }"
+    elif "/" in secure_file_priv or "\\" in secure_file_priv:
+        compliant = True
+        details = "MariaDb server has restricted read/write access to files. "
     else:
-        logger().error("No result in file access.")
+        logger().warning("Secure file privilege untracked value: {}.".format(secure_file_priv))
 
+    local_infile = sess.my_conf.get("mysqld_local_infile", None)
+    if local_infile is None:
+        query = """SHOW VARIABLES LIKE 'local_infile';"""
+        result = exec_sql_query(con, query)
+        variable, local_infile = result[0]
+
+    parsed_data["local_infile"] = local_infile
+
+    if local_infile == "on":
+        compliant = False
+        was_compliant_false = True
+        details = details + "\\textbf{Local is supported for \\texttt{LOAD DATA INFILE} statements. }"
+    elif local_infile == "off":
+        compliant = True
+        details = details + "Local loading data will fail with error message. "
+    else:
+        logger().warning("Innodb encrypt temporary tables untracked value: {}.".format(local_infile))
+
+    details = details + latex_g.mariadb_conf_dict_to_latex_table(parsed_data, "Variable", "Value", True)
 
     query = """SELECT User, Host, File_priv
                    FROM mysql.user
@@ -403,14 +422,20 @@ def test_file_access(sess):
     parsed_data = {}
 
     if result == "":
+        compliant = True
         details = details + " No user has privilege to read/write to files."
     else:
+        compliant = False
+        was_compliant_false = True
         details = details + " Users in following table have privilege to read/write to files."
         for user, host, file_priv in result:
             if user not in parsed_data:
                 parsed_data[user] = [host, file_priv]
 
         details = details + "\n" + latex_g.detail_to_latex(parsed_data, "User", "Host", "File_priv", True)
+
+    if was_compliant_false:
+        compliant = False
 
     return {
         'compliant': compliant,
