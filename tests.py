@@ -382,6 +382,7 @@ def test_file_access(sess):
         variable, secure_file_priv = result[0]
 
     parsed_data["secure_file_priv"] = secure_file_priv
+    secure_file_priv = secure_file_priv.strip().lower()
 
     if secure_file_priv.strip() == "" or secure_file_priv is None:
         compliant = False
@@ -401,6 +402,7 @@ def test_file_access(sess):
         variable, local_infile = result[0]
 
     parsed_data["local_infile"] = local_infile
+    local_infile = local_infile.strip().lower()
 
     if local_infile == "on":
         compliant = False
