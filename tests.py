@@ -452,7 +452,7 @@ def test_log_conf(sess):
 
     parsed_data = {}
 
-    general_log = sess.my_conf.get("mysqld_general_log", None)
+    general_log = sess.my_conf.get("mariadb_general_log", None)
     if general_log is None:
         query = """SHOW VARIABLES LIKE 'general_log';"""
         result = exec_sql_query(con, query)
@@ -461,37 +461,17 @@ def test_log_conf(sess):
     parsed_data["general_log"] = general_log
     general_log = general_log.strip().lower()
 
-    if general_log == "on":
+    if general_log == "off":
         compliant = True
-        details = details + "General logging is on. "
-    elif general_log == "off":
+        details = details + "General logging is turned off. "
+    elif general_log == "on":
         compliant = False
         wasFalse = True
-        details = details + "\\textbf{General logging is off.} "
+        details = details + "\\textbf{General logging is turned on and could expose sensitive information. } "
     else:
         logger().warning("General logging untracked value: {}.".format(general_log))
 
-    log_raw = sess.my_conf.get("mysqld_log_raw", None)
-    if log_raw is None:
-        query = """SHOW VARIABLES LIKE 'log_raw';"""
-        result = exec_sql_query(con, query)
-        if result:
-            variable, log_raw = result[0]
-
-            parsed_data["log_raw"] = log_raw
-            log_raw = log_raw.strip().lower()
-
-    if log_raw == "on":
-        compliant = False
-        wasFalse = True
-        details = details + "\\textbf{Passwords can be exposed because of the log\\_raw setting.} "
-    elif log_raw == "off":
-        compliant = True
-        details = details + "Log\\_raw setting doesn't expose passwords. "
-    else:
-        logger().warning("Log\\_raw setting untracked value: {}.".format(log_raw))
-
-    slow_query_log = sess.my_conf.get("mysqld_slow_query_log", None)
+    slow_query_log = sess.my_conf.get("mariadb_slow_query_log", None)
     if slow_query_log is None:
         query = """SHOW VARIABLES LIKE 'slow_query_log';"""
         result = exec_sql_query(con, query)
@@ -510,13 +490,13 @@ def test_log_conf(sess):
     else:
         logger().warning("Slow query logging untracked value: {}".format(slow_query_log))
 
-    long_query_time = sess.my_conf.get("mysqld_long_query_time", None)
+    long_query_time = sess.my_conf.get("mariadb_long_query_time", None)
     if long_query_time is None:
         query = """SHOW VARIABLES LIKE 'long_query_time';"""
         result = exec_sql_query(con, query)
         variable, long_query_time = result[0]
 
-    parsed_data["long_query_time"] = float(long_query_time).__round__(1)
+    parsed_data["long_query_time"] = float(long_query_time).__round__(6)
 
     if float(long_query_time) > 10:
         compliant = False
@@ -526,24 +506,46 @@ def test_log_conf(sess):
         compliant = True
         details = details + "Long query time is set reasonably. "
 
-    innodb_strict_mode = sess.my_conf.get("mysqld_innodb_strict_mode", None)
-    if innodb_strict_mode is None:
-        query = """SHOW VARIABLES LIKE 'innodb_strict_mode';"""
+    log_bin = sess.my_conf.get("mariadb_log_bin", None)
+    if log_bin is None:
+        query = """SHOW VARIABLES LIKE 'log_bin';"""
         result = exec_sql_query(con, query)
-        variable, innodb_strict_mode = result[0]
+        variable, log_bin = result[0]
 
-    parsed_data["innodb_strict_mode"] = innodb_strict_mode
-    innodb_strict_mode = innodb_strict_mode.strip().lower()
+    parsed_data["log_bin"] = log_bin
+    log_bin = log_bin.strip().lower()
 
-    if innodb_strict_mode == "on":
+    if log_bin == "on":
         compliant = True
-        details = details + "Innodb strict logging is on."
-    elif innodb_strict_mode == "off":
+        details = details + "Binary logging is turned on. "
+    elif log_bin == "off":
         compliant = False
         wasFalse = True
-        details = details + "\\textbf{Innodb strict logging is off.}"
+        details = details + "\\textbf{Binary logging is turned off. } "
+    elif "/" in log_bin or "\\" in log_bin:
+        compliant = True
+        details = details + "Binary logging is turned on and logs are saved in {}. ".format(log_bin)
     else:
-        logger().warning("InnoDB strict logging untracked value: {}".format(innodb_strict_mode))
+        logger().warning("Binary logging untracked value: {}.".format(log_bin))
+
+    encrypt_binlog = sess.my_conf.get("mariadb_encrypt_binlog", None)
+    if encrypt_binlog is None:
+        query = """SHOW VARIABLES LIKE 'encrypt_binlog';"""
+        result = exec_sql_query(con, query)
+        variable, encrypt_binlog = result[0]
+
+    parsed_data["encrypt_binlog"] = encrypt_binlog
+    encrypt_binlog = encrypt_binlog.strip().lower()
+
+    if encrypt_binlog == "on":
+        compliant = True
+        details = details + "Encryption of binary logs is turned on. "
+    elif encrypt_binlog == "off":
+        compliant = False
+        wasFalse = True
+        details = details + "\\textbf{Encryption of binary logs is turned off.} "
+    else:
+        logger().warning("Encrypt binlog untracked value: {}.".format(encrypt_binlog))
 
     if wasFalse == True:
         compliant = False
