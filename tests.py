@@ -560,29 +560,35 @@ def test_verbose_errors(sess):
     details = ""
     con = sess.conn
     variable = None
-    query = """SHOW VARIABLES LIKE 'log_error_verbosity';"""
 
-    result =  exec_sql_query(con, query)
+    log_warnings = sess.my_conf.get("mariadb_log_warnings", None)
+    if log_warnings is None:
+        query = """SHOW VARIABLES LIKE 'log_warnings';"""
+        result = exec_sql_query(con, query)
+        variable, log_warnings = result[0]
 
-    if result:
-        variable, value = result[0]
+    log_warnings = log_warnings.strip().lower()
 
-    if variable == "log_error_verbosity":
-        if value == "1":
-            compliant = True
-            details = "\\textbf{Current level of error verbosity is 1, which is recommended setting.}"
-        elif value == "2":
-            compliant = True
-            details = ("\\textbf{Current level of error verbosity is 2, which is compromise between security and usability. "
-                       "Warnings are logged, consider reducing verbosity.}")
-        elif value == "3":
-            compliant = False
-            details = ("\\textbf{Current level of error verbosity is 3, which is insecure setting. "
-                       "Detailed logs could expose sensitive information.}")
-        else:
-            logger().warning("Unknown log_error_verbosity value: {}".format(value))
+    if log_warnings == "0":
+        compliant = False
+        details = details + "\\textbf{Log warnings is set to 0, additional warning logging is disabled.} "
+    elif log_warnings == "1":
+        compliant = False
+        details = details + "\\textbf{Log warnings is set to 1, this could hide some important info for debugging.} "
+    elif log_warnings == "2":
+        compliant = True
+        details = details + "Log warnings is reasonably set to 2. "
+    elif log_warnings == "3":
+        compliant = False
+        details = details + "\\textbf{Log warnings is set to 3, notes like InnoDB Online DDL can be logged.} "
+    elif log_warnings == "4":
+        compliant = False
+        details = details + "\\textbf{Log warnings is set to 4, this setting logs killed connections.} "
+    elif log_warnings == "9":
+        compliant = False
+        details = details + "\\textbf{Log warnings is set to 9, plugins initialization is logged.} "
     else:
-        logger().warning("Unknown variable in verbose errors testing: {}".format(variable))
+        logger().warning("Log warnings untracked value: {}.".format(log_warnings))
 
     return {
         'compliant': compliant,
