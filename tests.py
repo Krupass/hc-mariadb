@@ -381,13 +381,15 @@ def test_file_access(sess):
         result = exec_sql_query(con, query)
         variable, secure_file_priv = result[0]
 
-    parsed_data["secure_file_priv"] = secure_file_priv
+    if secure_file_priv.strip() == "":
+        parsed_data["secure_file_priv"] = "$\\times$"
+    else:
+        parsed_data["secure_file_priv"] = secure_file_priv
     secure_file_priv = secure_file_priv.strip().lower()
 
     if secure_file_priv.strip() == "" or secure_file_priv is None:
         compliant = False
         was_compliant_false = True
-        logger().warning("Unrestricted write/read access to files.")
         details = "\\textbf{MariaDB server has unrestricted write/read access to files. }"
     elif "/" in secure_file_priv or "\\" in secure_file_priv:
         compliant = True
@@ -632,7 +634,10 @@ def test_ssl(sess):
         result = exec_sql_query(con, query)
         variable, ssl_ca = result[0]
 
-    parsed_data["ssl_ca"] = ssl_ca
+    if ssl_ca.strip() == "":
+        parsed_data["ssl_ca"] = "$\\times$"
+    else:
+        parsed_data["ssl_ca"] = ssl_ca
     ssl_ca = ssl_ca.strip().lower()
 
     if ssl_ca == "" or ssl_ca == "NULL" or ssl_ca == "null":
@@ -651,7 +656,10 @@ def test_ssl(sess):
         result = exec_sql_query(con, query)
         variable, ssl_cert = result[0]
 
-    parsed_data["ssl_cert"] = ssl_cert
+    if ssl_cert.strip() == "":
+        parsed_data["ssl_cert"] = "$\\times$"
+    else:
+        parsed_data["ssl_cert"] = ssl_cert
     ssl_cert = ssl_cert.strip().lower()
 
     if ssl_cert == "" or ssl_cert == "NULL" or ssl_cert == "null":
@@ -670,8 +678,11 @@ def test_ssl(sess):
         result = exec_sql_query(con, query)
         variable, ssl_key = result[0]
 
-    parsed_data["ssl_key"] = ssl_key
-    ssl_key = ssl_cert.strip().lower()
+    if ssl_key.strip() == "":
+        parsed_data["ssl_key"] = "$\\times$"
+    else:
+        parsed_data["ssl_key"] = ssl_key
+    ssl_key = ssl_key.strip().lower()
 
     if ssl_key == "" or ssl_key == "NULL" or ssl_key == "null":
         compliant = False
