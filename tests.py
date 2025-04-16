@@ -381,10 +381,7 @@ def test_file_access(sess):
         result = exec_sql_query(con, query)
         variable, secure_file_priv = result[0]
 
-    if secure_file_priv.strip() == "":
-        parsed_data["secure_file_priv"] = "$\\times$"
-    else:
-        parsed_data["secure_file_priv"] = secure_file_priv
+    parsed_data["secure_file_priv"] = secure_file_priv
     secure_file_priv = secure_file_priv.strip().lower()
 
     if secure_file_priv.strip() == "" or secure_file_priv is None:
@@ -696,7 +693,7 @@ def test_ssl(sess):
 
     if was_compliant_False:
         compliant = False
-    details = details + latex_g.mariadb_conf_dict_to_latex_table(parsed_data, "Variable", "Value", True)
+    details = details + latex_g.mariadb_conf_dict_to_latex_table(parsed_data, "Variable", "Value", False)
 
     return {
         'compliant': compliant,
