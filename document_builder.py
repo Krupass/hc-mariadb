@@ -347,7 +347,7 @@ class DocumentBuilder:
                             "compliant": False,
                             "show_config": True,
                             "required": ['db_connection'],
-                            "to_be_tested": False,
+                            "to_be_tested": True,
                             "severity": self.sev["low"],
                             "description_compliant": "Client-side error logging is properly configured. "
                                                      "Only critical errors are recorded in the logs, minimizing "
@@ -365,7 +365,7 @@ class DocumentBuilder:
                             "compliant": False,
                             "show_config": True,
                             "required": ['db_connection'],
-                            "to_be_tested": False,
+                            "to_be_tested": True,
                             "severity": self.sev["medium"],
                             "description_compliant": "\\textbf{}",
                             "description_noncompliant": "\\textbf{}",

@@ -597,68 +597,95 @@ def test_verbose_errors(sess):
 
 def test_ssl(sess):
     compliant = None
+    was_compliant_False = False
     con = sess.conn
-    query = """SHOW VARIABLES 
-                LIKE 'have_ssl';"""
+    details = ""
 
-    result = exec_sql_query(con, query)
+    parsed_data = {}
 
-    variable, value = result[0]
+    have_ssl = sess.my_conf.get("mariadb_have_ssl", None)
+    if have_ssl is None:
+        query = """SHOW VARIABLES LIKE 'have_ssl';"""
+        result = exec_sql_query(con, query)
+        variable, have_ssl = result[0]
 
-    if variable == 'have_ssl':
-        if value == 'YES':
-            details = "SSL is allowed."
-            compliant = True
-        else:
-            details = "SSL isn't active."
-            compliant = False
+    parsed_data["have_ssl"] = have_ssl
+    have_ssl = have_ssl.strip().lower()
+
+    if have_ssl == "yes":
+        compliant = True
+        details = details + "MariaDB server supports TLS and TLS is enabled. "
+    elif have_ssl == "no":
+        compliant = False
+        was_compliant_False = True
+        details = details + "\\textbf{MariaDB server does not support TLS. } "
+    elif have_ssl == "disabled":
+        compliant = False
+        was_compliant_False = True
+        details = details + "\\textbf{MariaDB server supports TLS but TLS is not enabled. } "
     else:
-        details = ""
-        logger().warning("Variable 'have_ssl' not found.")
+        logger().warning("Have SSL untracked value: {}.".format(have_ssl))
 
-    query = """SHOW VARIABLES
-                WHERE Variable_name 
-                IN ('ssl_ca', 'ssl_cert', 'ssl_key');"""
+    ssl_ca = sess.my_conf.get("mariadb_ssl_ca", None)
+    if ssl_ca is None:
+        query = """SHOW VARIABLES LIKE 'ssl_ca';"""
+        result = exec_sql_query(con, query)
+        variable, ssl_ca = result[0]
 
-    result = exec_sql_query(con, query)
+    parsed_data["ssl_ca"] = ssl_ca
+    ssl_ca = ssl_ca.strip().lower()
 
-    latex_table = "\\begin{center}\n\\begin{tabular}{|l|l|}\n\\hline\n"
-    latex_table += "\\textbf{Variable name} & \\textbf{Value} \\\\ \\hline\n"
+    if ssl_ca == "" or ssl_ca == "NULL" or ssl_ca == "null":
+        compliant = False
+        was_compliant_False = True
+        details = details + "\\textbf{No path in ssl\\_ca to file that contains trusted Certificate Authorities for TLS. } "
+    elif "." in ssl_ca or "/" in ssl_ca or "\\" in ssl_ca:
+        compliant = True
+        details = details + "Ssl\\_ca contains path to file that contains trusted Certificate Authorities for TLS. "
+    else:
+        logger().warning("SSL Certificate Authority untracked value: {}.".format(ssl_ca))
 
-    for variable, value in result:
-        if variable == 'ssl_ca':
-            if value == '' or value == 'NULL':
-                details = details + (" SSL Certificate Authority (CA) is missing or not configured. "
-                                     "MariaDB will not validate client certificates, which may reduce security.")
-                if compliant:
-                    compliant = False
-            else:
-                details = details + (" SSL Certificate Authority (CA) is correctly configured. "
-                                     "MariaDB can verify client certificates.")
-        elif variable == 'ssl_cert':
-            if value == '' or value == 'NULL':
-                details = details + (" SSL certificate is missing or not configured. "
-                                     "MariaDB cannot establish encrypted connections.")
-                if compliant:
-                    compliant = False
-            else:
-                details = details + " SSL certificate is correctly set."
-        elif variable == 'ssl_key':
-            if value == '' or value == 'NULL':
-                details = details + (" SSL private key is missing or not configured. "
-                                     "MariaDB cannot use SSL for encrypted connections.")
-                if compliant:
-                    compliant = False
-            else:
-                details = details + " SSL private key is correctly set."
+    ssl_cert = sess.my_conf.get("mariadb_ssl_cert", None)
+    if ssl_cert is None:
+        query = """SHOW VARIABLES LIKE 'ssl_cert';"""
+        result = exec_sql_query(con, query)
+        variable, ssl_cert = result[0]
 
-        latex_row = f"{latex_g.escape_latex(variable)} & {latex_g.escape_latex(value)} \\\\ \\hline\n"
-        latex_table += latex_row
+    parsed_data["ssl_cert"] = ssl_cert
+    ssl_cert = ssl_cert.strip().lower()
 
-    latex_table += "\\end{tabular}"
-    latex_table += "\\end{center}\n"
+    if ssl_cert == "" or ssl_cert == "NULL" or ssl_cert == "null":
+        compliant = False
+        was_compliant_False = True
+        details = details + "\\textbf{No path in ssl\\_cert to the certificate for TLS. } "
+    elif "." in ssl_cert or "/" in ssl_cert or "\\" in ssl_cert:
+        compliant = True
+        details = details + "Ssl\\_cert contains path to the certificate for TLS. "
+    else:
+        logger().warning("SSL Certificate untracked value: {}.".format(ssl_cert))
 
-    details = details + "\n" + latex_table
+    ssl_key = sess.my_conf.get("mariadb_ssl_key", None)
+    if ssl_key is None:
+        query = """SHOW VARIABLES LIKE 'ssl_key';"""
+        result = exec_sql_query(con, query)
+        variable, ssl_key = result[0]
+
+    parsed_data["ssl_key"] = ssl_key
+    ssl_key = ssl_cert.strip().lower()
+
+    if ssl_key == "" or ssl_key == "NULL" or ssl_key == "null":
+        compliant = False
+        was_compliant_False = True
+        details = details + "\\textbf{No path in ssl\\_key to the private key for TLS. } "
+    elif "." in ssl_key or "/" in ssl_key or "\\" in ssl_key:
+        compliant = True
+        details = details + "Ssl\\_key contains path to the private key for TLS. "
+    else:
+        logger().warning("SSL Key untracked value: {}.".format(ssl_key))
+
+    if was_compliant_False:
+        compliant = False
+    details = details + latex_g.mariadb_conf_dict_to_latex_table(parsed_data, "Variable", "Value", True)
 
     return {
         'compliant': compliant,
