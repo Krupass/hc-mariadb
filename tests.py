@@ -24,8 +24,8 @@ def test_transit_encryption(sess):
 
     for row in result:
         user, host, ssl_type = row
-        if not user.strip().startswith("mysql."):
-            if ssl_type.strip().lower() == "x509" or ssl_type.strip().lower() == "ssl" or ssl_type.strip().lower() == "any":
+        if not user.strip().startswith("mariadb."):
+            if ssl_type.strip().lower() == "x509" or ssl_type.strip().lower() == "specified" or ssl_type.strip().lower() == "any":
                 compliant = True
             else:
                 compliant = False
@@ -40,7 +40,7 @@ def test_transit_encryption(sess):
 
     parsed_data = {}
 
-    require_secure_transport = sess.my_conf.get("mysqld_require_secure_transport", None)
+    require_secure_transport = sess.my_conf.get("mariadb_require_secure_transport", None)
     if require_secure_transport is None:
         query = """SHOW VARIABLES LIKE 'require_secure_transport';"""
         result = exec_sql_query(con, query)
@@ -59,7 +59,7 @@ def test_transit_encryption(sess):
     else:
         logger().warning("Require secure transport untracked value: {}.".format(require_secure_transport))
 
-    ssl_cipher = sess.my_conf.get("mysqld_ssl_cipher", None)
+    ssl_cipher = sess.my_conf.get("mariadb_ssl_cipher", None)
     if ssl_cipher is None:
         query = """SHOW VARIABLES LIKE 'ssl_cipher';"""
         result = exec_sql_query(con, query)
@@ -92,7 +92,7 @@ def test_transit_encryption(sess):
 def test_rest_encryption(sess):
     con = sess.conn
     query = """SELECT NAME, ENCRYPTION_SCHEME, CURRENT_KEY_ID 
-                FROM INFORMATION_SCHEMA.INNODB_TABLESPACES_ENCRYPTION"""
+                FROM INFORMATION_SCHEMA.INNODB_TABLESPACES_ENCRYPTION;"""
     compliant = None
     was_compliant_false = False
     details = ""
@@ -103,20 +103,23 @@ def test_rest_encryption(sess):
     if result:
         for row in result:
             name, encryption_scheme, current_key_id = row
-            if encryption_scheme.strip() == 1 or encryption_scheme.strip() == "1":
-                compliant = True
-            else:
+            if encryption_scheme.strip() == 0 or encryption_scheme.strip() == "0":
                 compliant = False
                 was_compliant_false = True
+            elif encryption_scheme.strip() == 1 or encryption_scheme.strip() == "1":
+                compliant = True
+            else:
+                logger().warning("Unknown InnoDB encryption scheme {}.".format(encryption_scheme.strip()))
 
             parsed_data[name] = [encryption_scheme, current_key_id]
-        details = latex_g.detail_to_latex(parsed_data, "Name", "Encryption scheme", "Key ID", True) + "\n"
+        details = "Records in information\\_schema.innodb\\_tablespaces\\_encryption table: " + latex_g.detail_to_latex(parsed_data, "Name", "Encryption scheme", "Key ID", True) + "\n"
     else:
+        details = "\\textbf{No record in information\\_schema.innodb\\_tablespaces\\_encryption table. }"
         logger().error("No individual tables are encrypted at rest.")
 
     parsed_data = {}
 
-    innodb_encrypt_tables = sess.my_conf.get("mysqld_innodb_encrypt_tables", None)
+    innodb_encrypt_tables = sess.my_conf.get("mariadb_innodb_encrypt_tables", None)
     if innodb_encrypt_tables is None:
         query = """SHOW VARIABLES LIKE 'innodb_encrypt_tables';"""
         result = exec_sql_query(con, query)
@@ -138,7 +141,7 @@ def test_rest_encryption(sess):
     else:
         logger().warning("Innodb encrypt tables untracked value: {}.".format(innodb_encrypt_tables))
 
-    innodb_encrypt_log = sess.my_conf.get("mysqld_innodb_encrypt_log", None)
+    innodb_encrypt_log = sess.my_conf.get("mariadb_innodb_encrypt_log", None)
     if innodb_encrypt_log is None:
         query = """SHOW VARIABLES LIKE 'innodb_encrypt_log';"""
         result = exec_sql_query(con, query)
@@ -157,7 +160,7 @@ def test_rest_encryption(sess):
     else:
         logger().warning("Innodb encrypt log untracked value: {}.".format(innodb_encrypt_log))
 
-    innodb_encrypt_temporary_tables = sess.my_conf.get("mysqld_innodb_encrypt_temporary_tables", None)
+    innodb_encrypt_temporary_tables = sess.my_conf.get("mariadb_innodb_encrypt_temporary_tables", None)
     if innodb_encrypt_temporary_tables is None:
         query = """SHOW VARIABLES LIKE 'innodb_encrypt_temporary_tables';"""
         result = exec_sql_query(con, query)
@@ -187,15 +190,16 @@ def test_rest_encryption(sess):
 
 def test_insecure_auth_methods(sess):
     mariadb_auth_methods = parser.parse_auth_methods(sess)
-    insecure_methods = ["mysql_native_password", "mysql_old_password", "named_pipe", "unix_socket"]
-    warning_methods = []
-    secure_methods = ["ed25519", "gssapi", "pam", "parsec"]
+    insecure_methods = ["mysql_native_password", "mysql_old_password"]
+    warning_methods = ["named_pipe", "unix_socket"]
+    secure_methods = ["ed25519", "gssapi"]
     user_plugins_sorted = {}
     compliant = None
     was_false = False
+    details = ""
 
     for user, values in mariadb_auth_methods.items():
-        if not user.strip().startswith("mysql."):
+        if not user.strip().startswith("mariadb."):
             host, plugin = values
 
             if plugin in insecure_methods:
@@ -204,6 +208,8 @@ def test_insecure_auth_methods(sess):
                 was_false = True
             elif plugin in warning_methods:
                 user_plugins_sorted[user] = [plugin, "warning"]
+                compliant = False
+                was_false = True
             elif plugin in secure_methods:
                 user_plugins_sorted[user] = [plugin, "secure"]
                 compliant = True
@@ -213,8 +219,6 @@ def test_insecure_auth_methods(sess):
                 was_false = True
 
 
-
-    details = ""
     if bool(user_plugins_sorted):
         details = latex_g.detail_to_latex(user_plugins_sorted, "User", "Plugin", "Security", True)
 
@@ -237,11 +241,11 @@ def test_trust_authentication(sess):
         host, plugin = values
 
         if plugin == "unix_socket":
-            insecure_users[user] = [plugin, "insecure"]
+            insecure_users[user] = [plugin, "warning"]
             compliant = False
 
         elif plugin == "named_pipe":
-            insecure_users[user] = [plugin, "insecure"]
+            insecure_users[user] = [plugin, "warning"]
             compliant = False
 
     for user, values in mariadb_empty_passwords.items():
@@ -375,7 +379,7 @@ def test_file_access(sess):
     con = sess.conn
     parsed_data = {}
 
-    secure_file_priv = sess.my_conf.get("mysqld_secure_file_priv", None)
+    secure_file_priv = sess.my_conf.get("mariadb_secure_file_priv", None)
     if secure_file_priv is None:
         query = """SHOW VARIABLES LIKE 'secure_file_priv';"""
         result = exec_sql_query(con, query)
@@ -394,7 +398,7 @@ def test_file_access(sess):
     else:
         logger().warning("Secure file privilege untracked value: {}.".format(secure_file_priv))
 
-    local_infile = sess.my_conf.get("mysqld_local_infile", None)
+    local_infile = sess.my_conf.get("mariadb_local_infile", None)
     if local_infile is None:
         query = """SHOW VARIABLES LIKE 'local_infile';"""
         result = exec_sql_query(con, query)

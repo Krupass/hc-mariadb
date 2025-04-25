@@ -204,9 +204,9 @@ class DocumentBuilder:
                         "severity": self.sev["low"],
                         "description_noncompliant": "This test found that following users are not configured to "
                                                  "ensure encrypted communication:",
-                        "description_compliant": "This test found that all users enforce encrypted comunication.",
+                        "description_compliant": "This test found that all users enforce encrypted communication.",
                         "config_details": "",
-                        "recommendation":"We recoment implementing secure data transit with encryption.",
+                        "recommendation":"We recommend implementing secure data transit with encryption.",
                         "test_function": tests.test_transit_encryption
                     },
                     2: {
