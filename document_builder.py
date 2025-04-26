@@ -267,11 +267,11 @@ class DocumentBuilder:
                                        "by an attacker to compromise the database.",
                         "compliant": False,
                         "show_config": True,
-                        "required": ['db_connection'],
+                        "required": [],
                         "to_be_tested": True,
                         "severity": self.sev["low"],
-                        "description_compliant": "\\textbf{Database uses latest version of MariaDB }",
-                        "description_noncompliant": "\\textbf{Database uses outdated version of MariaDB }",
+                        "description_compliant": "\\textbf{Database server uses latest version of MariaDB }",
+                        "description_noncompliant": "\\textbf{Database server uses outdated version of MariaDB }",
                         "config_details": "",
                         "test_function": tests.test_software_version                    
                     },
@@ -297,7 +297,7 @@ class DocumentBuilder:
                             "description": "The purpose of this test is to verify that the MariaDB server is properly "
                                            "secured against potential abuse of user defined functions. The test will inspect the contents of the mysql.func table, "
                                            "which stores information about any custom functions that have been loaded into the server."
-                                           " Additionally, the test will check schema privileges table for users with privileges over mysql schema.",
+                                           " Additionally, the test will check schema privileges table for users with privileges over mysql database.",
                             "compliant": False,
                             "show_config": True,
                             "required": ['db_connection'],

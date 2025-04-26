@@ -330,9 +330,9 @@ def test_user_defined_functions(sess):
 
         for row in result:
             name, ret, dll, type = row
-            parsed_data[name] = [dll, type]
+            parsed_data[name] = [dll, ret]
 
-        details = details + latex_g.detail_to_latex(parsed_data, "Name", "Library name", "Type", True)
+        details = details + latex_g.detail_to_latex(parsed_data, "Name", "Library name", "Returns", True)
         compliant = False
         was_compliant_false = True
     else:
@@ -344,7 +344,7 @@ def test_user_defined_functions(sess):
     query = """SELECT Grantee, Table_schema, Privilege_type 
                FROM information_schema.schema_privileges
                WHERE Table_schema = 'mysql' 
-               AND Privilege_type IN ('INSERT', 'UPDATE', 'DELETE');"""
+               AND Privilege_type IN ('INSERT', 'DELETE');"""
     result = exec_sql_query(con, query)
 
     if result:
@@ -357,12 +357,12 @@ def test_user_defined_functions(sess):
             else:
                 parsed_data[grantee] = [table_schema, privilege]
 
-        details = details + "\\textbf{Users with direct change privileges over mysql schema:} " + latex_g.detail_to_latex(parsed_data, "Grantee", "Table schema", "Privileges", True)
+        details = details + "\\textbf{Users with direct change privileges over \\texttt{mysql} database:} " + latex_g.detail_to_latex(parsed_data, "Grantee", "Table schema", "Privileges", True)
         compliant = False
         was_compliant_false = True
     else:
         compliant = True
-        details = details + "No users with direct change privileges over mysql schema."
+        details = details + "No users with direct change privileges over \\texttt{mysql} database."
 
     if was_compliant_false:
         compliant = False
@@ -388,7 +388,7 @@ def test_file_access(sess):
     parsed_data["secure_file_priv"] = secure_file_priv
     secure_file_priv = secure_file_priv.strip().lower()
 
-    if secure_file_priv.strip() == "" or secure_file_priv is None:
+    if secure_file_priv == "" or secure_file_priv == "null" or secure_file_priv is None:
         compliant = False
         was_compliant_false = True
         details = "\\textbf{MariaDB server has unrestricted write/read access to files. }"
@@ -415,7 +415,7 @@ def test_file_access(sess):
         compliant = True
         details = details + "Local loading data will fail with error message. "
     else:
-        logger().warning("Innodb encrypt temporary tables untracked value: {}.".format(local_infile))
+        logger().warning("Local infile untracked value: {}.".format(local_infile))
 
     details = details + latex_g.mariadb_conf_dict_to_latex_table(parsed_data, "Variable", "Value", True)
 
