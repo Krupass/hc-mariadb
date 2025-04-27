@@ -337,28 +337,6 @@ class DocumentBuilder:
                             "test_function": tests.test_log_conf
                     },
                     10: {
-                            "subsection": "Client side errors",
-                            "description": "This test checks the error verbosity setting on the MariaDB server to "
-                                           "determine if error messages are securely configured. The error verbosity"
-                                           " variable controls the level of detail included in error logs. A higher "
-                                           "verbosity level may expose sensitive information, making it easier "
-                                           "for attackers to gather insights about the database structure, users, or "
-                                           "potential vulnerabilities.",
-                            "compliant": False,
-                            "show_config": True,
-                            "required": ['db_connection'],
-                            "to_be_tested": True,
-                            "severity": self.sev["low"],
-                            "description_compliant": "Client-side error logging is properly configured. "
-                                                     "Only critical errors are recorded in the logs, minimizing "
-                                                     "the risk of information leakage.\n",
-                            "description_noncompliant": "Client-side error logging is too verbose. "
-                                                        "The current setting allows warnings or informational "
-                                                        "messages to be recorded, which may expose sensitive details.\n",
-                            "config_details": "",
-                            "test_function": tests.test_verbose_errors
-                    },
-                    11: {
                             "subsection": "Configuration of SSL",
                             "description": "This test verifies whether MariaDB has SSL enabled. Additionally, it ensures "
                                            "that the required SSL variables are correctly configured.",
@@ -372,7 +350,7 @@ class DocumentBuilder:
                             "config_details": "",
                             "test_function": tests.test_ssl
                     },
-                    12: {
+                    11: {
                             "subsection": "SUPER privileges",
                             "description": "This test checks which users have the SUPER privilege in the MariaDB database. "
                                            "The test queries the mysql.user table.",

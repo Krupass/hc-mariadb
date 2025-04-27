@@ -519,16 +519,11 @@ def test_log_conf(sess):
     log_bin = log_bin.strip().lower()
 
     if log_bin == "on":
-        compliant = True
-        details = details + "Binary logging is turned on. "
+        bin_log = True
     elif log_bin == "off":
-        compliant = False
-        wasFalse = True
-        details = details + "\\textbf{Binary logging is turned off. } "
-    elif "/" in log_bin or "\\" in log_bin:
-        compliant = True
-        details = details + "Binary logging is turned on and logs are saved in {}. ".format(log_bin)
+        bin_log = False
     else:
+        bin_log = False
         logger().warning("Binary logging untracked value: {}.".format(log_bin))
 
     encrypt_binlog = sess.my_conf.get("mariadb_encrypt_binlog", None)
@@ -540,13 +535,21 @@ def test_log_conf(sess):
     parsed_data["encrypt_binlog"] = encrypt_binlog
     encrypt_binlog = encrypt_binlog.strip().lower()
 
-    if encrypt_binlog == "on":
+    if bin_log == True and encrypt_binlog == "on":
         compliant = True
-        details = details + "Encryption of binary logs is turned on. "
-    elif encrypt_binlog == "off":
+        details = details + "Binary logging is turned on. Encryption of binary logs is turned on."
+    elif bin_log == True and encrypt_binlog == "off":
         compliant = False
         wasFalse = True
-        details = details + "\\textbf{Encryption of binary logs is turned off.} "
+        details = details + "Binary logging is turned on. " + "\\textbf{Encryption of binary logs is turned off.} "
+    elif bin_log == False and encrypt_binlog == "on":
+        compliant = False
+        wasFalse = True
+        details = details + "\\textbf{Binary logging is turned off. } " + "Encryption of binary logs is turned on."
+    elif bin_log == False and encrypt_binlog == "off":
+        compliant = False
+        wasFalse = True
+        details = details + "\\textbf{Binary logging is turned off. Encryption of binary logs is turned off.} "
     else:
         logger().warning("Encrypt binlog untracked value: {}.".format(encrypt_binlog))
 
@@ -556,46 +559,6 @@ def test_log_conf(sess):
     return {
         'compliant': compliant,
         'config_details': details + "\n" + latex_g.mariadb_conf_dict_to_latex_table(parsed_data, "Variable", "Value", True),
-    }
-
-def test_verbose_errors(sess):
-    compliant = None
-    details = ""
-    con = sess.conn
-    variable = None
-
-    log_warnings = sess.my_conf.get("mariadb_log_warnings", None)
-    if log_warnings is None:
-        query = """SHOW VARIABLES LIKE 'log_warnings';"""
-        result = exec_sql_query(con, query)
-        variable, log_warnings = result[0]
-
-    log_warnings = log_warnings.strip().lower()
-
-    if log_warnings == "0":
-        compliant = False
-        details = details + "\\textbf{Log warnings is set to 0, additional warning logging is disabled.} "
-    elif log_warnings == "1":
-        compliant = False
-        details = details + "\\textbf{Log warnings is set to 1, this could hide some important info for debugging.} "
-    elif log_warnings == "2":
-        compliant = True
-        details = details + "Log warnings is reasonably set to 2. "
-    elif log_warnings == "3":
-        compliant = False
-        details = details + "\\textbf{Log warnings is set to 3, notes like InnoDB Online DDL can be logged.} "
-    elif log_warnings == "4":
-        compliant = False
-        details = details + "\\textbf{Log warnings is set to 4, this setting logs killed connections.} "
-    elif log_warnings == "9":
-        compliant = False
-        details = details + "\\textbf{Log warnings is set to 9, plugins initialization is logged.} "
-    else:
-        logger().warning("Log warnings untracked value: {}.".format(log_warnings))
-
-    return {
-        'compliant': compliant,
-        'config_details': details
     }
 
 def test_ssl(sess):
