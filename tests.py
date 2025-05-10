@@ -36,7 +36,7 @@ def test_transit_encryption(sess):
                     parsed_data[user] = [host, ssl_type]
 
     if not parsed_data == {}:
-        details = latex_g.detail_to_latex(parsed_data, "User", "Host", "SSL Type", False) + "\n"
+        details = details + latex_g.detail_to_latex(parsed_data, "User", "Host", "SSL Type", False) + "\n"
 
     parsed_data = {}
 
@@ -103,15 +103,15 @@ def test_rest_encryption(sess):
     if result:
         for row in result:
             name, encryption_scheme, current_key_id = row
-            if encryption_scheme.strip() == 0 or encryption_scheme.strip() == "0":
+            if encryption_scheme == 0 or encryption_scheme == "0":
                 compliant = False
                 was_compliant_false = True
-            elif encryption_scheme.strip() == 1 or encryption_scheme.strip() == "1":
+            elif encryption_scheme == 1 or encryption_scheme == "1":
                 compliant = True
             else:
-                logger().warning("Unknown InnoDB encryption scheme {}.".format(encryption_scheme.strip()))
+                logger().warning("Unknown InnoDB encryption scheme {}.".format(encryption_scheme))
 
-            parsed_data[name] = [encryption_scheme, current_key_id]
+            parsed_data[name] = [str(encryption_scheme), str(current_key_id)]
         details = "Records in information\\_schema.innodb\\_tablespaces\\_encryption table: " + latex_g.detail_to_latex(parsed_data, "Name", "Encryption scheme", "Key ID", True) + "\n"
     else:
         details = "\\textbf{No record in information\\_schema.innodb\\_tablespaces\\_encryption table. }"

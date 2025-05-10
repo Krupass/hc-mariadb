@@ -202,8 +202,8 @@ class DocumentBuilder:
                         "required": ['db_connection'],
                         "to_be_tested": True,
                         "severity": self.sev["low"],
-                        "description_noncompliant": "This test found that following users are not configured to "
-                                                 "ensure encrypted communication:",
+                        "description_noncompliant": "\\textbf{This test found that following users are not configured to "
+                                                 "ensure encrypted communication:}",
                         "description_compliant": "This test found that all users enforce encrypted communication.",
                         "config_details": "",
                         "recommendation":"We recommend implementing secure data transit with encryption.",
@@ -211,10 +211,10 @@ class DocumentBuilder:
                     },
                     2: {
                         "subsection": "Encryption at rest",
-                        "description": "This test verifies that database tablespaces are encrypted. If the value is 'Y', "
-                                       "it indicates that the tablespace is encrypted, while 'N' indicates that the "
+                        "description": "This test verifies if database tablespaces are encrypted. If the value of encryption scheme is 1, "
+                                       "it indicates that the tablespace is encrypted, while 0 indicates that the "
                                        "tablespace is not encrypted. The test will list all tablespaces along with their "
-                                       "encryption status.",
+                                       "encryption status and ID of the key used for encryption.",
                         "compliant": False,
                         "show_config": True,
                         "required": ['db_connection'],
@@ -230,7 +230,7 @@ class DocumentBuilder:
                         "description":  "This test examines the 'mysql.user' table for outdated authentication plugins. Specifically, "
                                         "it identifies the use of 'mysql_old_password', which is highly insecure and has been removed "
                                         "in modern MariaDB versions, and 'mysql_native_password', which relies on the SHA1 hashing algorithm"
-                                        " and is considered less secure than newer authentication plugins such as 'caching_sha2_password'. "
+                                        " and is considered less secure than newer authentication plugins such as 'ed25519'. "
                                         "While 'mysql_native_password' is still widely used, its reliance on SHA1 makes it vulnerable to "
                                         "cryptographic weaknesses, and its use is discouraged in favor of stronger authentication plugins.",
                         "compliant": False,
