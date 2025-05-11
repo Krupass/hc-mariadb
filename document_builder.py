@@ -109,7 +109,7 @@ class DocumentBuilder:
             tested = "$\\checkmark$" if value["to_be_tested"] else "$\\times$"
             compliant = "$\\checkmark$" if value["compliant"] else "$\\times$"
             severity = value["severity"]
-            latex_table += f"    {key} & {latex_g.escape_latex("\\nameref{sec:" + value['subsection'] + "}")} & {tested} & {compliant} & {latex_g.escape_latex(severity)} \\\\\\hline\n"
+            latex_table += f"    {key} & {"\\nameref{sec:" + latex_g.escape_latex(value['subsection']) + "}"} & {tested} & {compliant} & {latex_g.escape_latex(severity)} \\\\\\hline\n"
 
         latex_table += """
         \\end{tabular}
