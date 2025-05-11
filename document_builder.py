@@ -109,7 +109,7 @@ class DocumentBuilder:
             tested = "$\\checkmark$" if value["to_be_tested"] else "$\\times$"
             compliant = "$\\checkmark$" if value["compliant"] else "$\\times$"
             severity = value["severity"]
-            latex_table += f"    {key} & {"\\nameref{sec:" + latex_g.escape_latex(value['subsection']) + "}"} & {tested} & {compliant} & {latex_g.escape_latex(severity)} \\\\\\hline\n"
+            latex_table += f"    {key} & {latex_g.escape_latex(value['subsection'])} & {tested} & {compliant} & {latex_g.escape_latex(severity)} \\\\\\hline\n"
 
         latex_table += """
         \\end{tabular}
@@ -159,7 +159,7 @@ class DocumentBuilder:
             config_details = item.get('config_details', '')
             recommendation = item.get('recommendation', '')
             
-            latex_code += "\\subsection{" + latex_g.escape_latex(subsection) + "}\\label{sec:" + latex_g.escape_latex(subsection) + "}\n"
+            latex_code += "\\subsection{" + latex_g.escape_latex(subsection) + "}\n"
             
             latex_code += "\\paragraph{Description} " + latex_g.escape_latex(description) + "\n\n"
             
