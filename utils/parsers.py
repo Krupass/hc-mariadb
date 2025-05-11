@@ -77,7 +77,7 @@ def parse_empty_passwords(self):
     query = """
         SELECT user, host, plugin, authentication_string
         FROM mysql.user
-        WHERE (authentication_string = '' OR authentication_string IS NULL);"""
+        WHERE (authentication_string = '' OR authentication_string IS NULL) AND user NOT IN ('mariadb.sys');"""
 
     rows = exec_sql_query(self.conn, query)
     parsed_data = {}

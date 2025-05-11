@@ -206,7 +206,6 @@ class DocumentBuilder:
                                                  "ensure encrypted communication:}",
                         "description_compliant": "This test found that all users enforce encrypted communication.",
                         "config_details": "",
-                        "recommendation":"We recommend implementing secure data transit with encryption.",
                         "test_function": tests.test_transit_encryption
                     },
                     2: {
@@ -249,13 +248,13 @@ class DocumentBuilder:
                                         "This configuration poses a significant security risk, as it allows potentially unauthorized individuals "
                                         "to gain access to sensitive data and perform unauthorized actions within the database. "
                                         "Utilizing trust authentication undermines the fundamental principle of access control and compromises "
-                                        "the confidentiality, integrity, and availability of the database.",
+                                        "the confidentiality, integrity and availability of the database.",
                         "compliant": False,
                         "show_config": True,
                         "required": ['db_connection'],
                         "to_be_tested": True,
                         "severity": self.sev["high"],
-                        "description_compliant": "\\textbf{User cannot connect without authentication.}",
+                        "description_compliant": "\\textbf{Users cannot connect without authentication.}",
                         "description_noncompliant": "\\textbf{Database allows some users to connect without password.}",
                         "config_details": "",
                         "test_function": tests.test_trust_authentication
